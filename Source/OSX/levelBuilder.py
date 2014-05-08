@@ -28,6 +28,9 @@ class ExtendedQLabel(QLabel):
 	def getIdx(self):
 		return self.pixIdx;
 		
+	def setIdx(self,new_idx):
+		self.pixIdx = new_idx;
+		
 	def getPic(self):
 		return self.pixmaps[self.pixIdx]
  
@@ -144,7 +147,7 @@ class MyWindow(QMainWindow):
 		self.windowTitle = "Level Designer"
 
 		self.cwd = os.getcwd()
-
+		
 		if getattr(sys, "frozen", False):
 			self.cwd = os.path.dirname(sys.executable)
 			
@@ -162,58 +165,44 @@ class MyWindow(QMainWindow):
 			for i in range(self.gridHeight):
 				for j in range(3):
 					self.images.append(ExtendedQLabel(self,i*3+j))
-					self.images[-1].setGeometry(800+100*j,900-100*(self.gridHeight-i),100,100)
-					self.images[-1].setPixmap(self.images[-1].getPic().scaled(self.images[-1].size()))
 		else:
 			self.readInFile()
 		
 		#Create control buttons
 		emptyTreeIcon = QIcon(QPixmap(self.cwd + "/images/emptyTrunk.png"))
 		emptyTreeBtn = QPushButton("",self)
-		emptyTreeBtn.setGeometry(100,50,120,120)
 		emptyTreeBtn.setToolTip("Add empty tree trunk to one slot")
 		emptyTreeBtn.setIcon(emptyTreeIcon)
-		emptyTreeBtn.setIconSize(emptyTreeBtn.geometry().size()-QSize(20,20))
 		emptyTreeBtn.clicked.connect(lambda : self.btnClick("emptyTrunk"))
 		
 		emptyTreesIcon = QIcon(QPixmap(self.cwd + "/images/tripleEmptyTrunk.png"))
 		emptyTreesBtn = QPushButton("",self)
-		emptyTreesBtn.setGeometry(100,200,120,120)
 		emptyTreesBtn.setToolTip("Add empty tree trunk to all 3 trees")
 		emptyTreesBtn.setIcon(emptyTreesIcon)
-		emptyTreesBtn.setIconSize(emptyTreesBtn.geometry().size()-QSize(20,20))
 		emptyTreesBtn.clicked.connect(lambda : self.btnClick("tripleEmptyTrunk"))
 		
 		beehiveTreeIcon = QIcon(QPixmap(self.cwd + "/images/beehiveTrunk.png"))
 		beehiveTreeBtn = QPushButton("",self)
-		beehiveTreeBtn.setGeometry(100,350,120,120)
 		beehiveTreeBtn.setToolTip("Add beehive tree trunk to one slot")
 		beehiveTreeBtn.setIcon(beehiveTreeIcon)
-		beehiveTreeBtn.setIconSize(beehiveTreeBtn.geometry().size()-QSize(20,20))
 		beehiveTreeBtn.clicked.connect(lambda : self.btnClick("beehiveTrunk"))
 		
 		snakeTreeIcon = QIcon(QPixmap(self.cwd + "/images/snakeTrunk.png"))
 		snakeTreeBtn = QPushButton("",self)
-		snakeTreeBtn.setGeometry(100,500,120,120)
 		snakeTreeBtn.setToolTip("Add snake tree trunk to one slot")
 		snakeTreeBtn.setIcon(snakeTreeIcon)
-		snakeTreeBtn.setIconSize(snakeTreeBtn.geometry().size()-QSize(20,20))
 		snakeTreeBtn.clicked.connect(lambda : self.btnClick("snakeTrunk"))
 		
 		bushTreeIcon = QIcon(QPixmap(self.cwd + "/images/bushTrunks.png"))
 		bushTreeBtn = QPushButton("",self)
-		bushTreeBtn.setGeometry(100,650,120,120)
 		bushTreeBtn.setToolTip("Add bush tree trunk to all 3 trees")
 		bushTreeBtn.setIcon(bushTreeIcon)
-		bushTreeBtn.setIconSize(bushTreeBtn.geometry().size()-QSize(20,20))
 		bushTreeBtn.clicked.connect(lambda : self.btnClick("bushTrunk"))
 		
 		eraseTreeIcon = QIcon(QPixmap(self.cwd + "/images/eraser.png"))
 		eraseTreeBtn = QPushButton("",self)
-		eraseTreeBtn.setGeometry(100,800,120,120)
 		eraseTreeBtn.setToolTip("Erase one slot")
 		eraseTreeBtn.setIcon(eraseTreeIcon)
-		eraseTreeBtn.setIconSize(eraseTreeBtn.geometry().size()-QSize(20,20))
 		eraseTreeBtn.clicked.connect(lambda : self.btnClick("eraseTrunk"))
 		
 		self.btns.append(emptyTreeBtn)
@@ -310,6 +299,29 @@ class MyWindow(QMainWindow):
 		
 		self.showMaximized()
 		
+		
+		gridSize = int(self.geometry().height()/6)
+		buttonMargin = int(gridSize/10)
+		buttonSize = gridSize - buttonMargin*2
+		emptyTreeBtn.setGeometry(100,buttonMargin,buttonSize,buttonSize)
+		emptyTreeBtn.setIconSize(emptyTreeBtn.geometry().size()-QSize(20,20))
+		emptyTreesBtn.setGeometry(100,buttonSize+buttonMargin*3,buttonSize,buttonSize)
+		emptyTreesBtn.setIconSize(emptyTreesBtn.geometry().size()-QSize(20,20))
+		beehiveTreeBtn.setGeometry(100,buttonSize*2+buttonMargin*5,buttonSize,buttonSize)
+		beehiveTreeBtn.setIconSize(beehiveTreeBtn.geometry().size()-QSize(20,20))
+		snakeTreeBtn.setGeometry(100,buttonSize*3+buttonMargin*7,buttonSize,buttonSize)
+		snakeTreeBtn.setIconSize(snakeTreeBtn.geometry().size()-QSize(20,20))
+		bushTreeBtn.setGeometry(100,buttonSize*4+buttonMargin*9,buttonSize,buttonSize)
+		bushTreeBtn.setIconSize(bushTreeBtn.geometry().size()-QSize(20,20))
+		eraseTreeBtn.setGeometry(100,buttonSize*5+buttonMargin*11,buttonSize,buttonSize)
+		eraseTreeBtn.setIconSize(eraseTreeBtn.geometry().size()-QSize(20,20))
+		
+		for i in range(self.gridHeight):
+			for j in range(3):
+				self.images[i*3+j].setGeometry((self.geometry().width()/2-int(buttonSize*3/2))+buttonSize*j,900-buttonSize*(self.gridHeight-i),buttonSize,buttonSize)
+				self.images[i*3+j].altSetPic(self.images[i*3+j].getIdx())
+		
+		
 		self.levelNameLabel.setGeometry(self.leftBorder+20,self.geometry().height()-75,self.levelNameLabel.geometry().width()+100,self.levelNameLabel.geometry().height())
 		levelHeightLabel.setGeometry(self.leftBorder+20,self.geometry().height()-50,levelHeightLabel.geometry().width()+100,levelHeightLabel.geometry().height())
 		
@@ -322,23 +334,29 @@ class MyWindow(QMainWindow):
 		linedivider2.setGeometry(self.rightBorder+30,2*self.geometry().height()/4,self.geometry().width()-self.rightBorder-60,5)
 		linedivider3.setGeometry(self.rightBorder+30,3*self.geometry().height()/4,self.geometry().width()-self.rightBorder-60,5)
 		
-		newBtn.setGeometry((self.geometry().width()-self.rightBorder)/2+self.rightBorder-80,linedivider1.geometry().topLeft().y()-200,160,80)
-		newheightLabel.move(newBtn.geometry().topLeft().x(),newBtn.geometry().topLeft().y()+100)
-		self.newHeight.setGeometry(newBtn.geometry().topLeft().x(),newBtn.geometry().topLeft().y()+130,160,20)
 		
-		importBtn.setGeometry((self.geometry().width()-self.rightBorder)/2+self.rightBorder-80,linedivider2.geometry().topLeft().y()-200,160,80)
-		filenameLabel1.move(importBtn.geometry().topLeft().x(),importBtn.geometry().topLeft().y()+100)
-		self.importFilename.setGeometry(importBtn.geometry().topLeft().x(),importBtn.geometry().topLeft().y()+130,120,20)
-		extensionLabel1.move(importBtn.geometry().topLeft().x()+125,importBtn.geometry().topLeft().y()+125)
+		btnWidth = int((self.geometry().width()-self.rightBorder) * 0.50);
+		btnHeight = int((self.geometry().height()/4) * 0.35);
+		btnXPos = int(self.rightBorder + (self.geometry().width()-self.rightBorder)/2 - btnWidth/2);
+		btnYOffset = int((self.geometry().height()/4) * 0.10)
 		
-		exportBtn.setGeometry((self.geometry().width()-self.rightBorder)/2+self.rightBorder-80,linedivider3.geometry().topLeft().y()-200,160,80)
-		filenameLabel2.move(exportBtn.geometry().topLeft().x(),exportBtn.geometry().topLeft().y()+100)
-		self.exportFilename.setGeometry(exportBtn.geometry().topLeft().x(),exportBtn.geometry().topLeft().y()+130,120,20)
-		extensionLabel2.move(exportBtn.geometry().topLeft().x()+125,exportBtn.geometry().topLeft().y()+125)
+		newBtn.setGeometry(btnXPos,btnYOffset,btnWidth,btnHeight)
+		newheightLabel.move(newBtn.geometry().topLeft().x(),newBtn.geometry().topLeft().y()+btnHeight+10)
+		self.newHeight.setGeometry(newBtn.geometry().topLeft().x(),newBtn.geometry().topLeft().y()+btnHeight+40,btnWidth,20)
 		
-		extendBtn.setGeometry((self.geometry().width()-self.rightBorder)/2+self.rightBorder-80,self.geometry().height()-200,160,80)
-		extendLabel.move(extendBtn.geometry().topLeft().x(),extendBtn.geometry().topLeft().y()+100)
-		self.extensionValue.setGeometry(extendBtn.geometry().topLeft().x(),extendBtn.geometry().topLeft().y()+130,160,20)
+		importBtn.setGeometry(btnXPos,linedivider1.geometry().topLeft().y()+btnYOffset,btnWidth,btnHeight)
+		filenameLabel1.move(importBtn.geometry().topLeft().x(),importBtn.geometry().topLeft().y()+btnHeight+10)
+		self.importFilename.setGeometry(importBtn.geometry().topLeft().x(),importBtn.geometry().topLeft().y()+btnHeight+40,btnWidth-40,20)
+		extensionLabel1.move(importBtn.geometry().topLeft().x()+btnWidth-35,importBtn.geometry().topLeft().y()+btnHeight+35)
+		
+		exportBtn.setGeometry(btnXPos,linedivider2.geometry().topLeft().y()+btnYOffset,btnWidth,btnHeight)
+		filenameLabel2.move(exportBtn.geometry().topLeft().x(),exportBtn.geometry().topLeft().y()+btnHeight+10)
+		self.exportFilename.setGeometry(exportBtn.geometry().topLeft().x(),exportBtn.geometry().topLeft().y()+btnHeight+40,btnWidth-40,20)
+		extensionLabel2.move(exportBtn.geometry().topLeft().x()+btnWidth-35,exportBtn.geometry().topLeft().y()+btnHeight+35)
+		
+		extendBtn.setGeometry(btnXPos,linedivider3.geometry().topLeft().y()+btnYOffset,btnWidth,btnHeight)
+		extendLabel.move(extendBtn.geometry().topLeft().x(),extendBtn.geometry().topLeft().y()+btnHeight+10)
+		self.extensionValue.setGeometry(extendBtn.geometry().topLeft().x(),extendBtn.geometry().topLeft().y()+btnHeight+40,btnWidth,20)
 		
 		
 ##-----------------------------------------		
@@ -398,16 +416,13 @@ class MyWindow(QMainWindow):
 		
 		for line in reversed(lines):
 			self.images.append(ExtendedQLabel(self,idx))
-			self.images[-1].setGeometry(800,900-100*(self.gridHeight-row),100,100)
-			self.images[-1].altSetPic(int(line[0]))
+			self.images[-1].setIdx(int(line[0]))
 			idx = idx + 1
 			self.images.append(ExtendedQLabel(self,idx))
-			self.images[-1].setGeometry(900,900-100*(self.gridHeight-row),100,100)
-			self.images[-1].altSetPic(int(line[2]))
+			self.images[-1].setIdx(int(line[2]))
 			idx = idx + 1
 			self.images.append(ExtendedQLabel(self,idx))
-			self.images[-1].setGeometry(1000,900-100*(self.gridHeight-row),100,100)
-			self.images[-1].altSetPic(int(line[4]))
+			self.images[-1].setIdx(int(line[4]))
 			idx = idx + 1
 			row = row + 1
 		
