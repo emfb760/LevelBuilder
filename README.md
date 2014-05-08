@@ -16,4 +16,4 @@ Translate:
 	MMB  -or-  Shift+LMB
 	
 Zoom:
-	Scrollwheel  -or-  Ctrl+LMB
+	Scrollwheel  -or-  Ctrl+LMB / Cmd+LMB
