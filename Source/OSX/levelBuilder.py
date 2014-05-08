@@ -64,16 +64,22 @@ class ExtendedQLabel(QLabel):
 		self.setPixmap(self.pixmaps[self.pixIdx].scaled(self.size()))
  
 	def mousePressEvent(self, event):
-		if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+		if event.type() == QEvent.MouseButtonPress and ( event.button() == Qt.LeftButton and not self.parent.shiftKeyPressed and not self.parent.ctrlKeyPressed ):
 			self.setPic(self.parent.itemSelected)
 			self.parent.istranslating = False
 			self.parent.setWindowTitle("*%s"%(self.parent.windowTitle))
-		elif event.type() == QEvent.MouseButtonPress and event.button() == Qt.MidButton:
+		elif event.type() == QEvent.MouseButtonPress and ( event.button() == Qt.MidButton or ( event.button() == Qt.LeftButton and self.parent.shiftKeyPressed ) ):
 			self.parent.istranslating = True
+			self.parent.iszooming = False
 			self.parent.clicked = event.globalPos()
-			self.parent.pos = self.parent.images[0].geometry().topLeft()	
+			self.parent.pos = self.parent.images[0].geometry().topLeft()
+		elif event.type() == QEvent.MouseButtonPress and self.parent.ctrlKeyPressed and event.button() == Qt.LeftButton:
+			self.parent.istranslating = False
+			self.parent.iszooming = True
+			self.parent.clicked = event.globalPos()
 		else:
 			self.parent.istranslating = False
+			self.parent.iszooming = False
 			
 	def mouseMoveEvent(self,event):
 		if self.parent.istranslating:
@@ -98,6 +104,13 @@ class ExtendedQLabel(QLabel):
 							self.parent.images[i].move(self.parent.pos.x()+dx+wOffset*2,self.parent.pos.y()+dy)
 						else:
 							self.parent.images[i].move(self.parent.pos.x()+dx+wOffset*2,self.parent.pos.y()+dy+hOffset*int(i/3))
+		elif self.parent.iszooming:
+			if event.globalY() > self.parent.clicked.y()+10:
+				self.parent.zoom(-120)
+				self.parent.clicked = event.globalPos()
+			elif event.globalY() < self.parent.clicked.y()-10:
+				self.parent.zoom(120)
+				self.parent.clicked = event.globalPos()
 
 
 #############Define MyWindow Class Here ############
@@ -117,7 +130,7 @@ class MyWindow(QMainWindow):
 		self.rightBorder = 400
 		
 		self.istranslating = False
-		
+		self.iszooming = False
 		
 		self.gridHeight = altGridHeight #number of tree trunk sections
 		
@@ -134,6 +147,9 @@ class MyWindow(QMainWindow):
 
 		if getattr(sys, "frozen", False):
 			self.cwd = os.path.dirname(sys.executable)
+			
+		self.shiftKeyPressed = False
+		self.ctrlKeyPressed = False
 		
 		self.initUI()
 
@@ -409,7 +425,6 @@ class MyWindow(QMainWindow):
 		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".level","w+")
 		
 		extVal = int(self.extensionValue.text())
-		print extVal
 		
 		for i in range(self.gridHeight-1,-1,-1):
 			if extVal < 0 and i < -extVal :
@@ -456,8 +471,8 @@ class MyWindow(QMainWindow):
 			self.btns[5].setStyleSheet("background-color: green")
 			
 ##-----------------------------------------
-	def wheelEvent(self,event):
-		tempx = self.x + event.delta()/120
+	def zoom(self,zoomAmt):
+		tempx = self.x + zoomAmt/120
 		
 		if tempx < self.prev_x and tempx >= self.min_zoom:
 			for image in self.images:
@@ -506,15 +521,25 @@ class MyWindow(QMainWindow):
 						
 			self.x = tempx
 			self.prev_x = self.x
+			
+##-----------------------------------------
+	def wheelEvent(self,event):
+		self.zoom(event.delta())
 
 ##-----------------------------------------			
 	def mousePressEvent(self,event):
-		if event.type() == QEvent.MouseButtonPress and event.button() == Qt.MidButton:
+		if event.type() == QEvent.MouseButtonPress and ( event.button() == Qt.MidButton or ( self.shiftKeyPressed and event.button() == Qt.LeftButton) ):
 			self.istranslating = True
+			self.iszooming = False
 			self.clicked = event.globalPos()
 			self.pos = self.images[0].geometry().topLeft()
+		elif event.type() == QEvent.MouseButtonPress and self.ctrlKeyPressed and event.button() == Qt.LeftButton:
+			self.istranslating = False
+			self.iszooming = True
+			self.clicked = event.globalPos()
 		else:
 			self.istranslating = False
+			self.iszooming = False
 
 ##-----------------------------------------			
 	def mouseMoveEvent(self,event):
@@ -540,7 +565,28 @@ class MyWindow(QMainWindow):
 							self.images[i].move(self.pos.x()+dx+wOffset*2,self.pos.y()+dy)
 						else:
 							self.images[i].move(self.pos.x()+dx+wOffset*2,self.pos.y()+dy+hOffset*int(i/3))
-							
+		elif self.iszooming:
+			if event.globalY() > self.clicked.y()+10:
+				self.zoom(-120)
+				self.clicked = event.globalPos()
+			elif event.globalY() < self.clicked.y()-10:
+				self.zoom(120)
+				self.clicked = event.globalPos()
+	
+##-----------------------------------------
+	def keyPressEvent(self, event):
+		if type(event) == QKeyEvent and event.key() == Qt.Key_Shift:
+			self.shiftKeyPressed = True
+		elif type(event) == QKeyEvent and event.key() == Qt.Key_Control:
+			self.ctrlKeyPressed = True
+			
+##-----------------------------------------
+	def keyReleaseEvent(self, event):
+		if type(event) == QKeyEvent and event.key() == Qt.Key_Shift:
+			self.shiftKeyPressed = False
+		elif type(event) == QKeyEvent and event.key() == Qt.Key_Control:
+			self.ctrlKeyPressed = False
+	
 ##-----------------------------------------
 ##########End of Class Definition ################## 
 

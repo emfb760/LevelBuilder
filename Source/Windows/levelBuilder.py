@@ -18,11 +18,12 @@ class ExtendedQLabel(QLabel):
 		
 		self.pixIdx = 0
 		self.pixmaps = []
-		self.pixmaps.append(QPixmap(os.getcwd() + "/images/dotted_frame.png"))
-		self.pixmaps.append(QPixmap(os.getcwd() + "/images/emptyTrunk.png"))
-		self.pixmaps.append(QPixmap(os.getcwd() + "/images/beehiveTrunk.png"))
-		self.pixmaps.append(QPixmap(os.getcwd() + "/images/snakeTrunk.png"))
-		self.pixmaps.append(QPixmap(os.getcwd() + "/images/bushTrunk.png"))
+
+		self.pixmaps.append(QPixmap(self.parent.cwd + "/images/dotted_frame.png"))
+		self.pixmaps.append(QPixmap(self.parent.cwd + "/images/emptyTrunk.png"))
+		self.pixmaps.append(QPixmap(self.parent.cwd + "/images/beehiveTrunk.png"))
+		self.pixmaps.append(QPixmap(self.parent.cwd + "/images/snakeTrunk.png"))
+		self.pixmaps.append(QPixmap(self.parent.cwd + "/images/bushTrunk.png"))
 		
 	def getIdx(self):
 		return self.pixIdx;
@@ -63,16 +64,22 @@ class ExtendedQLabel(QLabel):
 		self.setPixmap(self.pixmaps[self.pixIdx].scaled(self.size()))
  
 	def mousePressEvent(self, event):
-		if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+		if event.type() == QEvent.MouseButtonPress and ( event.button() == Qt.LeftButton and not self.parent.shiftKeyPressed and not self.parent.ctrlKeyPressed ):
 			self.setPic(self.parent.itemSelected)
 			self.parent.istranslating = False
 			self.parent.setWindowTitle("*%s"%(self.parent.windowTitle))
-		elif event.type() == QEvent.MouseButtonPress and event.button() == Qt.MidButton:
+		elif event.type() == QEvent.MouseButtonPress and ( event.button() == Qt.MidButton or ( event.button() == Qt.LeftButton and self.parent.shiftKeyPressed ) ):
 			self.parent.istranslating = True
+			self.parent.iszooming = False
 			self.parent.clicked = event.globalPos()
-			self.parent.pos = self.parent.images[0].geometry().topLeft()	
+			self.parent.pos = self.parent.images[0].geometry().topLeft()
+		elif event.type() == QEvent.MouseButtonPress and self.parent.ctrlKeyPressed and event.button() == Qt.LeftButton:
+			self.parent.istranslating = False
+			self.parent.iszooming = True
+			self.parent.clicked = event.globalPos()
 		else:
 			self.parent.istranslating = False
+			self.parent.iszooming = False
 			
 	def mouseMoveEvent(self,event):
 		if self.parent.istranslating:
@@ -97,6 +104,13 @@ class ExtendedQLabel(QLabel):
 							self.parent.images[i].move(self.parent.pos.x()+dx+wOffset*2,self.parent.pos.y()+dy)
 						else:
 							self.parent.images[i].move(self.parent.pos.x()+dx+wOffset*2,self.parent.pos.y()+dy+hOffset*int(i/3))
+		elif self.parent.iszooming:
+			if event.globalY() > self.parent.clicked.y()+10:
+				self.parent.zoom(-120)
+				self.parent.clicked = event.globalPos()
+			elif event.globalY() < self.parent.clicked.y()-10:
+				self.parent.zoom(120)
+				self.parent.clicked = event.globalPos()
 
 
 #############Define MyWindow Class Here ############
@@ -116,7 +130,7 @@ class MyWindow(QMainWindow):
 		self.rightBorder = 400
 		
 		self.istranslating = False
-		
+		self.iszooming = False
 		
 		self.gridHeight = altGridHeight #number of tree trunk sections
 		
@@ -128,6 +142,11 @@ class MyWindow(QMainWindow):
 		self.btns = []
 		
 		self.windowTitle = "Level Designer"
+
+		self.cwd = os.getcwd()
+			
+		self.shiftKeyPressed = False
+		self.ctrlKeyPressed = False
 		
 		self.initUI()
 
@@ -146,7 +165,7 @@ class MyWindow(QMainWindow):
 			self.readInFile()
 		
 		#Create control buttons
-		emptyTreeIcon = QIcon(QPixmap(os.getcwd() + "/images/emptyTrunk.png"))
+		emptyTreeIcon = QIcon(QPixmap(self.cwd + "/images/emptyTrunk.png"))
 		emptyTreeBtn = QPushButton("",self)
 		emptyTreeBtn.setGeometry(100,50,120,120)
 		emptyTreeBtn.setToolTip("Add empty tree trunk to one slot")
@@ -154,7 +173,7 @@ class MyWindow(QMainWindow):
 		emptyTreeBtn.setIconSize(emptyTreeBtn.geometry().size()-QSize(20,20))
 		emptyTreeBtn.clicked.connect(lambda : self.btnClick("emptyTrunk"))
 		
-		emptyTreesIcon = QIcon(QPixmap(os.getcwd() + "/images/tripleEmptyTrunk.png"))
+		emptyTreesIcon = QIcon(QPixmap(self.cwd + "/images/tripleEmptyTrunk.png"))
 		emptyTreesBtn = QPushButton("",self)
 		emptyTreesBtn.setGeometry(100,200,120,120)
 		emptyTreesBtn.setToolTip("Add empty tree trunk to all 3 trees")
@@ -162,7 +181,7 @@ class MyWindow(QMainWindow):
 		emptyTreesBtn.setIconSize(emptyTreesBtn.geometry().size()-QSize(20,20))
 		emptyTreesBtn.clicked.connect(lambda : self.btnClick("tripleEmptyTrunk"))
 		
-		beehiveTreeIcon = QIcon(QPixmap(os.getcwd() + "/images/beehiveTrunk.png"))
+		beehiveTreeIcon = QIcon(QPixmap(self.cwd + "/images/beehiveTrunk.png"))
 		beehiveTreeBtn = QPushButton("",self)
 		beehiveTreeBtn.setGeometry(100,350,120,120)
 		beehiveTreeBtn.setToolTip("Add beehive tree trunk to one slot")
@@ -170,7 +189,7 @@ class MyWindow(QMainWindow):
 		beehiveTreeBtn.setIconSize(beehiveTreeBtn.geometry().size()-QSize(20,20))
 		beehiveTreeBtn.clicked.connect(lambda : self.btnClick("beehiveTrunk"))
 		
-		snakeTreeIcon = QIcon(QPixmap(os.getcwd() + "/images/snakeTrunk.png"))
+		snakeTreeIcon = QIcon(QPixmap(self.cwd + "/images/snakeTrunk.png"))
 		snakeTreeBtn = QPushButton("",self)
 		snakeTreeBtn.setGeometry(100,500,120,120)
 		snakeTreeBtn.setToolTip("Add snake tree trunk to one slot")
@@ -178,7 +197,7 @@ class MyWindow(QMainWindow):
 		snakeTreeBtn.setIconSize(snakeTreeBtn.geometry().size()-QSize(20,20))
 		snakeTreeBtn.clicked.connect(lambda : self.btnClick("snakeTrunk"))
 		
-		bushTreeIcon = QIcon(QPixmap(os.getcwd() + "/images/bushTrunks.png"))
+		bushTreeIcon = QIcon(QPixmap(self.cwd + "/images/bushTrunks.png"))
 		bushTreeBtn = QPushButton("",self)
 		bushTreeBtn.setGeometry(100,650,120,120)
 		bushTreeBtn.setToolTip("Add bush tree trunk to all 3 trees")
@@ -186,7 +205,7 @@ class MyWindow(QMainWindow):
 		bushTreeBtn.setIconSize(bushTreeBtn.geometry().size()-QSize(20,20))
 		bushTreeBtn.clicked.connect(lambda : self.btnClick("bushTrunk"))
 		
-		eraseTreeIcon = QIcon(QPixmap(os.getcwd() + "/images/eraser.png"))
+		eraseTreeIcon = QIcon(QPixmap(self.cwd + "/images/eraser.png"))
 		eraseTreeBtn = QPushButton("",self)
 		eraseTreeBtn.setGeometry(100,800,120,120)
 		eraseTreeBtn.setToolTip("Erase one slot")
@@ -275,7 +294,7 @@ class MyWindow(QMainWindow):
 		if self.readLevel:
 			self.levelNameLabel.setText("Level Name: "+self.readFile+".level")
 			self.exportFilename.setText(self.readFile)
-			self.windowTitle += " [" + os.getcwd() + "\\levels\\" + str(self.readFile) + ".level]"
+			self.windowTitle += " [" + self.cwd + "\\levels\\" + str(self.readFile) + ".level]"
 			self.setWindowTitle(self.windowTitle)
 		else:
 			self.levelNameLabel.setText("Level Name: [untitled]")
@@ -289,7 +308,7 @@ class MyWindow(QMainWindow):
 		self.showMaximized()
 		
 		self.levelNameLabel.setGeometry(self.leftBorder+20,self.geometry().height()-75,self.levelNameLabel.geometry().width()+100,self.levelNameLabel.geometry().height())
-		levelHeightLabel.move(self.leftBorder+20,self.geometry().height()-50)
+		levelHeightLabel.setGeometry(self.leftBorder+20,self.geometry().height()-50,levelHeightLabel.geometry().width()+100,levelHeightLabel.geometry().height())
 		
 		self.rightBorder = self.geometry().width() - self.rightBorder;
 		
@@ -331,7 +350,7 @@ class MyWindow(QMainWindow):
 			QMessageBox.about(self, "File Not Specified", "Please specify the name of a level to import")
 			return
 		
-		if not os.path.exists(os.getcwd() + "/levels/" + self.importFilename.text() + ".level"):
+		if not os.path.exists(self.cwd + "/levels/" + self.importFilename.text() + ".level"):
 			QMessageBox.about(self, "File Not Found", "%s.level was not found in the levels/ directory" % (self.importFilename.text()))
 			return
 			
@@ -345,10 +364,10 @@ class MyWindow(QMainWindow):
 			QMessageBox.about(self, "File Not Specified", "Please specify a name for the level before exporting")
 			return
 	
-		if not os.path.isdir(os.getcwd() + "/levels"):
-			os.makedirs(os.getcwd() + "/levels")
+		if not os.path.isdir(self.cwd + "/levels"):
+			os.makedirs(self.cwd + "/levels")
 			
-		f = open(os.getcwd() + "/levels/" + self.exportFilename.text() + ".level","w+")
+		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".level","w+")
 		
 		for i in range(self.gridHeight-1,-1,-1):
 			n1 = self.images[i*3].getIdx() if self.images[i*3].getIdx() > 0 else 1
@@ -361,12 +380,12 @@ class MyWindow(QMainWindow):
 		QMessageBox.about(self, "File Saved Successfully", "%s.level has been saved in the levels/ directory" % (self.exportFilename.text()))
 
 		self.levelNameLabel.setText("Level Name: "+self.exportFilename.text()+".level")
-		self.windowTitle = "Level Designer [" + os.getcwd() + "\\levels\\" + self.exportFilename.text() + ".level]"
+		self.windowTitle = "Level Designer [" + self.cwd + "\\levels\\" + self.exportFilename.text() + ".level]"
 		self.setWindowTitle(self.windowTitle)
 
 ##-----------------------------------------
 	def readInFile(self):
-		f = open(os.getcwd() + "/levels/" + self.readFile + ".level", "r")
+		f = open(self.cwd + "/levels/" + self.readFile + ".level", "r")
 					
 		lines = f.readlines()
 		idx = 0
@@ -397,13 +416,12 @@ class MyWindow(QMainWindow):
 			QMessageBox.about(self, "File Not Specified", "Please specify a name to save the level before extending")
 			return
 	
-		if not os.path.isdir(os.getcwd() + "/levels"):
-			os.makedirs(os.getcwd() + "/levels")
+		if not os.path.isdir(self.cwd + "/levels"):
+			os.makedirs(self.cwd + "/levels")
 			
-		f = open(os.getcwd() + "/levels/" + self.exportFilename.text() + ".level","w+")
+		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".level","w+")
 		
 		extVal = int(self.extensionValue.text())
-		print extVal
 		
 		for i in range(self.gridHeight-1,-1,-1):
 			if extVal < 0 and i < -extVal :
@@ -450,8 +468,8 @@ class MyWindow(QMainWindow):
 			self.btns[5].setStyleSheet("background-color: green")
 			
 ##-----------------------------------------
-	def wheelEvent(self,event):
-		tempx = self.x + event.delta()/120
+	def zoom(self,zoomAmt):
+		tempx = self.x + zoomAmt/120
 		
 		if tempx < self.prev_x and tempx >= self.min_zoom:
 			for image in self.images:
@@ -500,15 +518,25 @@ class MyWindow(QMainWindow):
 						
 			self.x = tempx
 			self.prev_x = self.x
+			
+##-----------------------------------------
+	def wheelEvent(self,event):
+		self.zoom(event.delta())
 
 ##-----------------------------------------			
 	def mousePressEvent(self,event):
-		if event.type() == QEvent.MouseButtonPress and event.button() == Qt.MidButton:
+		if event.type() == QEvent.MouseButtonPress and ( event.button() == Qt.MidButton or ( self.shiftKeyPressed and event.button() == Qt.LeftButton) ):
 			self.istranslating = True
+			self.iszooming = False
 			self.clicked = event.globalPos()
 			self.pos = self.images[0].geometry().topLeft()
+		elif event.type() == QEvent.MouseButtonPress and self.ctrlKeyPressed and event.button() == Qt.LeftButton:
+			self.istranslating = False
+			self.iszooming = True
+			self.clicked = event.globalPos()
 		else:
 			self.istranslating = False
+			self.iszooming = False
 
 ##-----------------------------------------			
 	def mouseMoveEvent(self,event):
@@ -534,7 +562,28 @@ class MyWindow(QMainWindow):
 							self.images[i].move(self.pos.x()+dx+wOffset*2,self.pos.y()+dy)
 						else:
 							self.images[i].move(self.pos.x()+dx+wOffset*2,self.pos.y()+dy+hOffset*int(i/3))
-							
+		elif self.iszooming:
+			if event.globalY() > self.clicked.y()+10:
+				self.zoom(-120)
+				self.clicked = event.globalPos()
+			elif event.globalY() < self.clicked.y()-10:
+				self.zoom(120)
+				self.clicked = event.globalPos()
+	
+##-----------------------------------------
+	def keyPressEvent(self, event):
+		if type(event) == QKeyEvent and event.key() == Qt.Key_Shift:
+			self.shiftKeyPressed = True
+		elif type(event) == QKeyEvent and event.key() == Qt.Key_Control:
+			self.ctrlKeyPressed = True
+			
+##-----------------------------------------
+	def keyReleaseEvent(self, event):
+		if type(event) == QKeyEvent and event.key() == Qt.Key_Shift:
+			self.shiftKeyPressed = False
+		elif type(event) == QKeyEvent and event.key() == Qt.Key_Control:
+			self.ctrlKeyPressed = False
+	
 ##-----------------------------------------
 ##########End of Class Definition ################## 
 
@@ -549,7 +598,7 @@ def main():
 		window = MyWindow()
 		window.show() 
 	
-	return app.exec_()
+	sys.exit(app.exec_())
  
 if __name__ == "__main__": 
 	main() 
