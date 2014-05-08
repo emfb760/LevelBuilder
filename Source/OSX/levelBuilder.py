@@ -318,7 +318,7 @@ class MyWindow(QMainWindow):
 		
 		for i in range(self.gridHeight):
 			for j in range(3):
-				self.images[i*3+j].setGeometry((self.geometry().width()/2-int(buttonSize*3/2))+buttonSize*j,900-buttonSize*(self.gridHeight-i),buttonSize,buttonSize)
+				self.images[i*3+j].setGeometry((self.geometry().width()/2-int(buttonSize*3/2))+buttonSize*j,(self.geometry().height()-20)-buttonSize*(self.gridHeight-i),buttonSize,buttonSize)
 				self.images[i*3+j].altSetPic(self.images[i*3+j].getIdx())
 		
 		
