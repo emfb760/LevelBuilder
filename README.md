@@ -4,7 +4,7 @@
 
 WINDOWS:
 
-Go to Windows/dist/levelBuilder/ and run levelBuilder.exe
+Go to Windows/dist/ and run levelBuilder.exe
 
 OSX (64-bit only):
 
