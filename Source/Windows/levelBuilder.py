@@ -242,7 +242,7 @@ class MyWindow(QMainWindow):
 		self.importFilename.setText("")
 		
 		extensionLabel1 = QLabel(self)
-		extensionLabel1.setText(".level")
+		extensionLabel1.setText(".txt")
 		
 		exportBtn = QPushButton("Export",self)
 		exportBtn.setToolTip("Export the level design")
@@ -255,7 +255,7 @@ class MyWindow(QMainWindow):
 		self.exportFilename.setText("")
 		
 		extensionLabel2 = QLabel(self)
-		extensionLabel2.setText(".level")
+		extensionLabel2.setText(".txt")
 		
 		
 		lline = QFrame(self);
@@ -281,9 +281,9 @@ class MyWindow(QMainWindow):
 		
 		self.levelNameLabel = QLabel(self)
 		if self.readLevel:
-			self.levelNameLabel.setText("Level Name: "+self.readFile+".level")
+			self.levelNameLabel.setText("Level Name: "+self.readFile+".txt")
 			self.exportFilename.setText(self.readFile)
-			self.windowTitle += " [" + self.cwd + "\\levels\\" + str(self.readFile) + ".level]"
+			self.windowTitle += " [" + self.cwd + "\\levels\\" + str(self.readFile) + ".txt]"
 			self.setWindowTitle(self.windowTitle)
 		else:
 			self.levelNameLabel.setText("Level Name: [untitled]")
@@ -368,8 +368,8 @@ class MyWindow(QMainWindow):
 			QMessageBox.about(self, "File Not Specified", "Please specify the name of a level to import")
 			return
 		
-		if not os.path.exists(self.cwd + "/levels/" + self.importFilename.text() + ".level"):
-			QMessageBox.about(self, "File Not Found", "%s.level was not found in the levels/ directory" % (self.importFilename.text()))
+		if not os.path.exists(self.cwd + "/levels/" + self.importFilename.text() + ".txt"):
+			QMessageBox.about(self, "File Not Found", "%s.txt was not found in the levels/ directory" % (self.importFilename.text()))
 			return
 			
 		window = MyWindow(0,True,self.importFilename.text())
@@ -385,7 +385,7 @@ class MyWindow(QMainWindow):
 		if not os.path.isdir(self.cwd + "/levels"):
 			os.makedirs(self.cwd + "/levels")
 			
-		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".level","w+")
+		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".txt","w+")
 		
 		for i in range(self.gridHeight-1,-1,-1):
 			n1 = self.images[i*3].getIdx() if self.images[i*3].getIdx() > 0 else 1
@@ -395,15 +395,15 @@ class MyWindow(QMainWindow):
 		
 		f.close()
 		
-		QMessageBox.about(self, "File Saved Successfully", "%s.level has been saved in the levels/ directory" % (self.exportFilename.text()))
+		QMessageBox.about(self, "File Saved Successfully", "%s.txt has been saved in the levels/ directory" % (self.exportFilename.text()))
 
-		self.levelNameLabel.setText("Level Name: "+self.exportFilename.text()+".level")
-		self.windowTitle = "Level Designer [" + self.cwd + "\\levels\\" + self.exportFilename.text() + ".level]"
+		self.levelNameLabel.setText("Level Name: "+self.exportFilename.text()+".txt")
+		self.windowTitle = "Level Designer [" + self.cwd + "\\levels\\" + self.exportFilename.text() + ".txt]"
 		self.setWindowTitle(self.windowTitle)
 
 ##-----------------------------------------
 	def readInFile(self):
-		f = open(self.cwd + "/levels/" + self.readFile + ".level", "r")
+		f = open(self.cwd + "/levels/" + self.readFile + ".txt", "r")
 					
 		lines = f.readlines()
 		idx = 0
@@ -434,7 +434,7 @@ class MyWindow(QMainWindow):
 		if not os.path.isdir(self.cwd + "/levels"):
 			os.makedirs(self.cwd + "/levels")
 			
-		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".level","w+")
+		f = open(self.cwd + "/levels/" + self.exportFilename.text() + ".txt","w+")
 		
 		extVal = int(self.extensionValue.text())
 		
@@ -452,7 +452,7 @@ class MyWindow(QMainWindow):
 		
 		f.close()
 		
-		QMessageBox.about(self, "File Saved Successfully", "%s.level has been saved in the levels/ directory" % (self.exportFilename.text()))
+		QMessageBox.about(self, "File Saved Successfully", "%s.txt has been saved in the levels/ directory" % (self.exportFilename.text()))
 
 		window = MyWindow(0,True,self.exportFilename.text())
 		window.show()
